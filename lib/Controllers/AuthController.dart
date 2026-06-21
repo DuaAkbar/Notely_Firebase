@@ -1,7 +1,7 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:get/get.dart';
 import 'package:notes_app/auth/loginScreen.dart';
 import 'package:notes_app/views/HomeScreen.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 
 class Authcontroller extends GetxController {
   RxBool isLoading = false.obs;
@@ -11,23 +11,40 @@ class Authcontroller extends GetxController {
     String userEmail,
     String userPassword,
   ) async {
-    final prefs = await SharedPreferences.getInstance();
-    prefs.setString('name', userName);
-    prefs.setString('email', userEmail);
-    prefs.setString('password', userPassword);
-
-    Get.offAll(() => Loginscreen());
+    try {
+      isLoading(true);
+      final createUser = await FirebaseAuth.instance
+          .createUserWithEmailAndPassword(
+            email: userEmail,
+            password: userPassword,
+          );
+      await createUser.user!.updateDisplayName(userName);
+      Get.offAll(() => Loginscreen());
+    } catch (e) {
+      Get.snackbar("Error", e.toString());
+    } finally {
+      isLoading(false);
+    }
   }
 
   Future<void> login(String userEmail, String userPassword) async {
-    final prefs = await SharedPreferences.getInstance();
-    String? savedEmail = prefs.getString('email');
-    String? savedPassword = prefs.getString('password');
+    try {
+      isLoading(true);
+      await FirebaseAuth.instance.signInWithEmailAndPassword(
+        email: userEmail,
+        password: userPassword,
+      );
 
-    if (userEmail == savedEmail && userPassword == savedPassword) {
       Get.offAll(() => HomeScreen());
-    } else {
-      Get.snackbar('Error', 'Invalid Email or Password!');
+    } catch (e) {
+      Get.snackbar('Error', e.toString());
+    } finally {
+      isLoading(false);
     }
+  }
+
+  Future<void> logOut() async {
+    await FirebaseAuth.instance.signOut();
+    Get.offAll(() => Loginscreen());
   }
 }

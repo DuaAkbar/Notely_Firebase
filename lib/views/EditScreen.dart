@@ -100,49 +100,53 @@ class _EditscreenState extends State<Editscreen> {
           ),
           SizedBox(height: 15),
           SingleChildScrollView(
-              scrollDirection: Axis.horizontal,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.start,
-                children:
-                    notesColors.map((color) {
-                      return GestureDetector(
-                        onTap: () {
-                          setState(() {
-                            selectedColor = color;
-                          });
-                        },
-                        child: Container(
-                          width: 24,
-                          height: 24,
-                          margin: EdgeInsets.symmetric(horizontal: 4.0),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: hexToColor(color),
-                            border:
-                                selectedColor == color
-                                    ? Border.all(
-                                      width: 1,
-                                      color: Colors.black87,
-                                    )
-                                    : Border.all(width: 1, color: Colors.grey),
-                          ),
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children:
+                  notesColors.map((color) {
+                    return GestureDetector(
+                      onTap: () {
+                        setState(() {
+                          selectedColor = color;
+                        });
+                      },
+                      child: Container(
+                        width: 24,
+                        height: 24,
+                        margin: EdgeInsets.symmetric(horizontal: 4.0),
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: hexToColor(color),
+                          border:
+                              selectedColor == color
+                                  ? Border.all(width: 1, color: Colors.black87)
+                                  : Border.all(width: 1, color: Colors.grey),
                         ),
-                      );
-                    }).toList(),
-              ),
+                      ),
+                    );
+                  }).toList(),
             ),
-          
+          ),
         ],
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           widget.note.title = titleController.text.trim();
           widget.note.preview = previewController.text.trim();
           widget.note.color = selectedColor;
 
-          notescontroller.updateNotes(widget.note);
-          Get.off(NotesScreen(note: widget.note));
+          if (widget.note.title.isNotEmpty && widget.note.preview.isNotEmpty) {
+            try {
+              await notescontroller.updateNotes(widget.note);
+              Get.off(() => NotesScreen(note: widget.note));
+            } catch (e) {
+              Get.snackbar("Error", e.toString());
+            }
+          } else {
+            Get.snackbar("Error", "Please Provide Tiltle and Notes both");
+          }
         },
 
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(50)),

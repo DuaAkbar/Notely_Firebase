@@ -10,30 +10,28 @@ class Notescontroller extends GetxController {
   @override
   void onInit() {
     super.onInit();
-    loadNotes();
-  }
-
-  //loading notes
-  Future<void> loadNotes() async {
-    final notes = await databaseservices.getNotes();
-    notelymodel.value = notes;
+    notelymodel.bindStream(
+      databaseservices.GetNotesStream().map((snapshot) {
+        return snapshot.docs.map((doc) {
+          return Notelymodel.fromJson(doc.data() as Map<String, dynamic>)
+            ..id = doc.id;
+        }).toList();
+      }),
+    );
   }
 
   //saving notes
   Future<void> addNotes(Notelymodel note) async {
-    await databaseservices.insertNote(note);
-    loadNotes();
+    await databaseservices.addnotes(note);
   }
 
-//delete notes
-  Future<void> deleteNotes(int id) async {
+  //delete notes
+  Future<void> deleteNotes(String id) async {
     await databaseservices.deleteNotes(id);
-    loadNotes();
   }
 
-//update notes
+  //update notes
   Future<void> updateNotes(Notelymodel notes) async {
     await databaseservices.updateNotes(notes);
-    loadNotes();
   }
 }

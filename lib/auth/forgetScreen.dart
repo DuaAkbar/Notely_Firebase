@@ -1,22 +1,20 @@
+import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/cupertino.dart';
 import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:form_validator/form_validator.dart';
 import 'package:get/get.dart';
-import 'package:notes_app/Controllers/AuthController.dart';
-import 'package:notes_app/auth/forgetScreen.dart';
+import 'package:notes_app/auth/loginScreen.dart';
 import 'package:notes_app/auth/registerScreen.dart';
 import 'package:notes_app/widgets/textfield.dart';
 
-class Loginscreen extends StatefulWidget {
+class ForgetPasswordScreen extends StatefulWidget {
   @override
-  State<StatefulWidget> createState() => _LoginscreenState();
+  State<StatefulWidget> createState() => _ForgetPasswordScreenState();
 }
 
-class _LoginscreenState extends State<Loginscreen> {
+class _ForgetPasswordScreenState extends State<ForgetPasswordScreen> {
   TextEditingController emailController = TextEditingController();
-  TextEditingController passwordController = TextEditingController();
-
-  final Authcontroller authcontroller = Get.put(Authcontroller());
 
   final GlobalKey<FormState> _key = GlobalKey<FormState>();
 
@@ -37,7 +35,7 @@ class _LoginscreenState extends State<Loginscreen> {
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Text(
-                  "Login",
+                  "Forget Password",
                   style: TextStyle(
                     fontFamily: 'DancingScript',
                     fontSize: 27,
@@ -51,41 +49,25 @@ class _LoginscreenState extends State<Loginscreen> {
                   textEditingController: emailController,
                   validator: ValidationBuilder().email().build(),
                 ),
-                SizedBox(height: 16),
-                Textfields(
-                  label: 'Enter Your Password',
-                  textEditingController: passwordController,
-                  validator: ValidationBuilder().required().build(),
-                ),
-                Align(
-                  alignment: Alignment.centerRight,
-                  child: Text.rich(
-                    TextSpan(
-                      text: "Forget Password?",
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: colors.onSurface,
-                      ),
-                      recognizer:
-                          TapGestureRecognizer()
-                            ..onTap = () {
-                              Get.offAll(ForgetPasswordScreen());
-                            },
-                    ),
-                  ),
-                ),
 
                 SizedBox(height: 30),
                 SizedBox(
                   height: 50,
                   width: double.infinity,
                   child: ElevatedButton(
-                    onPressed: () {
+                    onPressed: () async {
+                      String email = emailController.text;
+
                       if (_key.currentState!.validate()) {
-                        authcontroller.login(
-                          emailController.text.trim(),
-                          passwordController.text.trim(),
-                        );
+                        try {
+                          await FirebaseAuth.instance.sendPasswordResetEmail(
+                            email: email,
+                          );
+                          Get.snackbar('Success', 'Password reset email sent!');
+                          Get.offAll(Loginscreen());
+                        } catch (e) {
+                          Get.snackbar("Error", e.toString());
+                        }
                       }
                     },
                     style: ElevatedButton.styleFrom(
@@ -93,7 +75,7 @@ class _LoginscreenState extends State<Loginscreen> {
                       foregroundColor: colors.onPrimary,
                     ),
                     child: Text(
-                      "Login",
+                      "Send Email",
                       style: TextStyle(
                         fontFamily: "Nunito",
                         fontSize: 15,

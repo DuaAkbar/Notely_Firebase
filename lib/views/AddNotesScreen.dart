@@ -1,3 +1,4 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:get/get.dart';
 import 'package:get/get_core/get_core.dart';
@@ -124,21 +125,26 @@ class AddNotesScreenState extends State<AddNotesScreen> {
       ),
 
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
+        onPressed: () async {
           String title = titleController.text.trim();
           String preview = previewController.text.trim();
           String date = DateFormat('dd MMM yyyy').format(DateTime.now());
 
           if (title.isNotEmpty && preview.isNotEmpty) {
-            notescontroller.addNotes(
-              Notelymodel(
-                title: title,
-                preview: preview,
-                date: date,
-                color: selectedColors,
-              ),
-            );
-            Get.back();
+            try {
+              await notescontroller.addNotes(
+                Notelymodel(
+                  uid: FirebaseAuth.instance.currentUser!.uid,
+                  title: title,
+                  preview: preview,
+                  date: date,
+                  color: selectedColors,
+                ),
+              );
+              Get.back();
+            } catch (e) {
+              Get.snackbar("Error", e.toString());
+            }
           } else {
             Get.snackbar('Error', "Please Provide Tiltle and Notes both");
           }
